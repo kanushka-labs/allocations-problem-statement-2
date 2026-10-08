@@ -179,7 +179,7 @@ function Raise() {
         }}
         actions={
           <>
-            <Button id="btn.raise-cancel" label="Cancel" to="screen.engagements" />
+            <Button id="btn.raise-cancel" label="Cancel" to="screen.pick-opportunity" />
             <Button id="btn.raise-submit" label="Raise" emphasis="primary" submit />
           </>
         }
