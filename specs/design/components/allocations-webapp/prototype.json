@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 3,
+  "name": "Allocations",
+  "entryScreen": "screen.engagements",
+  "roles": [{ "id": "Requester", "name": "Requester" }],
+  "states": [
+    { "id": "state.default", "name": "Default" },
+    { "id": "state.empty", "name": "Nothing to show" },
+    { "id": "state.validation-error", "name": "Validation errors" },
+    { "id": "state.failed", "name": "Request failed" },
+    { "id": "state.delayed", "name": "CRM slow to answer" }
+  ],
+  "screens": [
+    { "id": "screen.engagements", "name": "My engagements", "roleIds": ["Requester"] },
+    { "id": "screen.pick-opportunity", "name": "Choose opportunity", "roleIds": ["Requester"] },
+    { "id": "screen.raise", "name": "Raise engagement", "roleIds": ["Requester"] },
+    { "id": "screen.detail", "name": "Engagement detail", "roleIds": ["Requester"] },
+    { "id": "screen.edit", "name": "Edit engagement", "roleIds": ["Requester"] },
+    { "id": "screen.account", "name": "Account", "roleIds": ["Requester"] },
+    { "id": "screen.settings", "name": "Settings", "roleIds": ["Requester"] },
+    { "id": "screen.signed-out", "name": "Signed out", "roleIds": ["Requester"] }
+  ],
+  "flows": [
+    {
+      "id": "flow.raise-engagement",
+      "name": "Raise a customer engagement",
+      "roleId": "Requester",
+      "screenIds": ["screen.engagements", "screen.pick-opportunity", "screen.raise", "screen.detail", "screen.edit"]
+    }
+  ]
+}
