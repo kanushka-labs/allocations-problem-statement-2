@@ -1,0 +1,12 @@
+{
+  "name": "crm-service",
+  "resource": {
+    "name": "crm-service",
+    "description": "The customer relationship system holding sales opportunities that customer engagement requests are raised from."
+  },
+  "suggestions": [
+    { "name": "Salesforce", "description": "Opportunity objects via REST API" },
+    { "name": "HubSpot", "description": "Deals via REST API" },
+    { "name": "Microsoft Dynamics 365", "description": "Opportunities via Dataverse Web API" }
+  ]
+}

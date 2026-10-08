@@ -1,0 +1,41 @@
+{
+  "version": 3,
+  "permissions": [
+    {
+      "resource": "engagements",
+      "component": "allocations-api",
+      "description": "Customer engagement requests",
+      "actions": [
+        { "handle": "read", "description": "The caller's own engagements" },
+        { "handle": "create", "description": "Raise an engagement of the caller's own" },
+        { "handle": "update", "description": "Edit one of the caller's own open engagements" },
+        { "handle": "complete", "description": "Complete one of the caller's own engagements" },
+        { "handle": "cancel", "description": "Cancel one of the caller's own engagements" }
+      ]
+    },
+    {
+      "resource": "opportunities",
+      "component": "allocations-api",
+      "description": "CRM opportunities",
+      "actions": [
+        { "handle": "search", "description": "Search CRM opportunities to raise an engagement from" }
+      ]
+    }
+  ],
+  "groups": [
+    { "name": "Requesters", "description": "People who raise engagement requests" }
+  ],
+  "roles": [
+    {
+      "name": "Requester",
+      "description": "Raises customer engagement requests from CRM opportunities and tracks, edits, completes or cancels them.",
+      "stories": ["F1.1", "F1.2", "F1.3", "F1.4", "F1.5", "F1.6"],
+      "grants": ["engagements:read", "engagements:create", "engagements:update", "engagements:complete", "engagements:cancel", "opportunities:search"],
+      "assignTo": ["Requesters"]
+    }
+  ],
+  "testUsers": [
+    { "username": "test-requester", "roles": ["Requester"] },
+    { "username": "test-requester-2", "roles": ["Requester"] }
+  ]
+}

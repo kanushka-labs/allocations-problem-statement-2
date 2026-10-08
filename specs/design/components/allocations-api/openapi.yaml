@@ -1,0 +1,268 @@
+openapi: 3.0.3
+info:
+  title: Allocations API
+  version: 0.1.0
+servers:
+  - url: /
+components:
+  securitySchemes:
+    oauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /oauth2/authorize
+          tokenUrl: /oauth2/token
+          scopes:
+            engagements:read: See own engagements
+            engagements:create: Raise an engagement
+            engagements:update: Edit own open engagement
+            engagements:complete: Complete own engagement
+            engagements:cancel: Cancel own engagement
+            opportunities:search: Search CRM opportunities
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: integer, description: HTTP or application error code }
+        message: { type: string, description: short human-readable label }
+        description: { type: string, description: detailed explanation }
+        moreInfo: { type: string, description: URI to documentation }
+    EngagementType:
+      type: object
+      required: [code, name]
+      properties:
+        code: { type: string }
+        name: { type: string }
+    Opportunity:
+      type: object
+      required: [id, name, customerName]
+      properties:
+        id: { type: string, description: CRM opportunity reference }
+        name: { type: string }
+        customerName: { type: string }
+    Engagement:
+      type: object
+      required: [id, opportunityId, opportunityName, customerName, type, status, startDate, endDate, requesterId, requesterName]
+      properties:
+        id: { type: string }
+        opportunityId: { type: string }
+        opportunityName: { type: string }
+        customerName: { type: string }
+        type: { type: string, description: code of an engagement type }
+        typeName: { type: string }
+        status: { type: string, enum: [open, completed, cancelled] }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        description: { type: string }
+        requesterId: { type: string }
+        requesterName: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    EngagementCreate:
+      type: object
+      required: [opportunityId, type, startDate, endDate]
+      properties:
+        opportunityId: { type: string }
+        type: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        description: { type: string }
+    EngagementUpdate:
+      type: object
+      properties:
+        type: { type: string }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        description: { type: string }
+    EngagementPage:
+      type: object
+      required: [count, data]
+      properties:
+        count: { type: integer, description: total matching items }
+        next: { type: string, nullable: true }
+        previous: { type: string, nullable: true }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Engagement' }
+    OpportunityPage:
+      type: object
+      required: [count, data]
+      properties:
+        count: { type: integer, description: total matching items }
+        next: { type: string, nullable: true }
+        previous: { type: string, nullable: true }
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Opportunity' }
+  parameters:
+    limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 20, maximum: 100 }
+    offset:
+      name: offset
+      in: query
+      schema: { type: integer, default: 0 }
+    engagementId:
+      name: engagementId
+      in: path
+      required: true
+      schema: { type: string }
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Unauthorized:
+      description: Not signed in or not permitted
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+security:
+  - oauth2: []
+paths:
+  /engagement-types:
+    get:
+      operationId: listEngagementTypes
+      summary: The customer engagement types
+      responses:
+        '200':
+          description: The types
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/EngagementType' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /opportunities:
+    get:
+      operationId: listOpportunities
+      summary: Search CRM opportunities
+      security:
+        - oauth2: [opportunities:search]
+      parameters:
+        - name: q
+          in: query
+          schema: { type: string }
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: Matching opportunities
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OpportunityPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /me/engagements:
+    get:
+      operationId: listMyEngagements
+      summary: The caller's engagements
+      security:
+        - oauth2: [engagements:read]
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, completed, cancelled] }
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
+      responses:
+        '200':
+          description: The caller's engagements
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EngagementPage' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      operationId: createMyEngagement
+      summary: Raise an engagement for the caller
+      security:
+        - oauth2: [engagements:create]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EngagementCreate' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Engagement' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /me/engagements/{engagementId}:
+    parameters:
+      - $ref: '#/components/parameters/engagementId'
+    get:
+      operationId: getMyEngagement
+      summary: One of the caller's engagements
+      security:
+        - oauth2: [engagements:read]
+      responses:
+        '200':
+          description: The engagement
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Engagement' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    patch:
+      operationId: updateMyEngagement
+      summary: Edit one of the caller's open engagements
+      security:
+        - oauth2: [engagements:update]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EngagementUpdate' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Engagement' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /me/engagements/{engagementId}/complete:
+    post:
+      operationId: completeMyEngagement
+      summary: Complete one of the caller's engagements
+      security:
+        - oauth2: [engagements:complete]
+      parameters:
+        - $ref: '#/components/parameters/engagementId'
+      responses:
+        '200':
+          description: Completed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Engagement' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /me/engagements/{engagementId}/cancel:
+    post:
+      operationId: cancelMyEngagement
+      summary: Cancel one of the caller's engagements
+      security:
+        - oauth2: [engagements:cancel]
+      parameters:
+        - $ref: '#/components/parameters/engagementId'
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Engagement' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
