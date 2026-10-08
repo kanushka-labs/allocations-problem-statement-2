@@ -7,3 +7,4 @@ A requester raises an engagement request from a CRM opportunity, edits it, and t
 ## Decisions
 
 - There are five customer engagement types, not three.
+
